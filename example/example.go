@@ -41,7 +41,6 @@ func main() {
 
 	ids, err := s.Search("Urls", map[string]interface{}{"@url": "google", "@version": ".*"})
 	fmt.Println("search ids:", ids, err)
-
 }
 
 func bench(s *nmns.Nmns) {
