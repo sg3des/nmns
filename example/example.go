@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"projects/nmns"
+	"github.com/sg3des/nmns"
 	"runtime"
 )
 
