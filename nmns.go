@@ -2,7 +2,6 @@ package nmns
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
 	"io/ioutil"
 	"os"
@@ -11,10 +10,7 @@ import (
 )
 
 var (
-	dir = "./data/"
-
-	err error
-
+	err   error
 	Index *os.File
 )
 
@@ -50,7 +46,6 @@ func Init(schemefile, dir string) error {
 }
 
 func writeIndex(dir string, newIndex map[string]int) error {
-	fmt.Println(dir, newIndex)
 	d, _ := json.Marshal(newIndex)
 
 	b, err := ioutil.ReadFile(path.Join(dir, "index.json"))
@@ -215,32 +210,6 @@ func reindex(dir, table, name string, curs, news int) error {
 	return nil
 }
 
-func Connect(dir string) (Nmns, error) {
-	var s Nmns
-	s.Scheme, err = readScheme(path.Join(dir, "scheme.json"))
-	if err != nil {
-		return s, err
-	}
-
-	s.Index, err = readIndex(path.Join(dir, "index.json"))
-	if err != nil {
-		return s, err
-	}
-
-	s.Files = make(map[string]map[string]*os.File)
-	for table, values := range s.Scheme {
-		s.Files[table] = make(map[string]*os.File)
-		for field, _ := range values {
-			f, err := os.OpenFile(path.Join(dir, table, field), os.O_RDWR|os.O_CREATE, 0600)
-			if err != nil {
-				return s, err
-			}
-			s.Files[table][field] = f
-		}
-	}
-	return s, nil
-}
-
 func readScheme(file string) (scheme map[string]map[string]int, err error) {
 	readfile, err := ioutil.ReadFile(file)
 	if err != nil {
@@ -306,4 +275,30 @@ func difference(slice1, slice2 []string) []string {
 	}
 
 	return diff
+}
+
+func Connect(dir string) (Nmns, error) {
+	var s Nmns
+	s.Scheme, err = readScheme(path.Join(dir, "scheme.json"))
+	if err != nil {
+		return s, err
+	}
+
+	s.Index, err = readIndex(path.Join(dir, "index.json"))
+	if err != nil {
+		return s, err
+	}
+
+	s.Files = make(map[string]map[string]*os.File)
+	for table, values := range s.Scheme {
+		s.Files[table] = make(map[string]*os.File)
+		for field, _ := range values {
+			f, err := os.OpenFile(path.Join(dir, table, field), os.O_RDWR|os.O_APPEND, 0755)
+			if err != nil {
+				return s, err
+			}
+			s.Files[table][field] = f
+		}
+	}
+	return s, nil
 }

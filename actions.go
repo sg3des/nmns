@@ -18,11 +18,15 @@ func (s *Nmns) Insert(table string, doc map[string]string) (id int, err error) {
 		}
 
 		var b []byte
+
+		var off = int64(id * maxlen)
 		misslen := maxlen - len(val)
 		b = append([]byte(val), make([]byte, misslen)...)
-		_, err = s.Files[table][field].WriteAt(b, int64(id*maxlen))
+		_, err = s.Files[table][field].WriteAt(b, off)
+		if err != nil {
+			return
+		}
 	}
-
 	s.Incrementindex(table)
 	return
 }
