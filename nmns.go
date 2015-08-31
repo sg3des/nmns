@@ -231,7 +231,7 @@ func Connect(dir string) (Nmns, error) {
 	for table, values := range s.Scheme {
 		s.Files[table] = make(map[string]*os.File)
 		for field, _ := range values {
-			f, err := os.OpenFile(path.Join(dir, table, field), os.O_APPEND|os.O_RDWR|os.O_CREATE, 0600)
+			f, err := os.OpenFile(path.Join(dir, table, field), os.O_RDWR|os.O_CREATE, 0600)
 			if err != nil {
 				return s, err
 			}

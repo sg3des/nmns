@@ -40,11 +40,23 @@ func main() {
 	fmt.Println("")
 
 	ids, err := s.Search("Urls", map[string]interface{}{"@url": "google", "@version": ".*"})
-	fmt.Println("search ids:", ids, err)
+	fmt.Println("search ids", ids, err)
+	fmt.Println("")
 
 	fmt.Println("delete id 1", s.Delete("Urls", 1))
 	docd1, err := s.Read("Urls", 1)
 	fmt.Println("read deleted id 1", docd1, err)
+	fmt.Println("")
+
+	docmissing, err := s.Read("Urls", 2)
+	fmt.Println("read missing id 2", docmissing, err)
+	fmt.Println("")
+
+	docupdate := map[string]string{"url": "yandex.ru", "cms": "joomla", "version": "1.1"}
+	fmt.Println("update id 0", docupdate, s.Update("Urls", 0, docupdate))
+
+	docur, err := s.Read("Urls", 0)
+	fmt.Println("read updated id 0", docur, err)
 
 }
 

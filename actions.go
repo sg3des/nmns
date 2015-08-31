@@ -54,7 +54,7 @@ func (s *Nmns) Read(table string, id int) (doc map[string]string, err error) {
 		if err != nil {
 			return
 		}
-		doc[field] = string(val)
+		doc[field] = strings.Trim(string(val), "\x00")
 	}
 	return
 }
@@ -135,17 +135,11 @@ func (s *Nmns) Delete(table string, id int) (err error) {
 	}
 
 	for field, size := range s.Scheme[table] {
-		var n int
-
-		r := make([]byte, size)
-		n, err = s.Files[table][field].ReadAt(r, int64(id*size))
-		fmt.Println("read", n, r)
-
 		b := make([]byte, size)
-
-		n, err = s.Files[table][field].WriteAt(b, int64(id*size))
-		fmt.Println("writ", n, b)
-		// s.Files[table][field].Seek(offset, whence)
+		_, err = s.Files[table][field].WriteAt(b, int64(id*size))
+		if err != nil {
+			return err
+		}
 	}
 	return
 }
