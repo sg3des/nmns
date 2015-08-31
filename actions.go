@@ -171,6 +171,7 @@ func (s *Nmns) Update(table string, id int, doc map[string]string) (err error) {
 }
 
 func (s *Nmns) All(table string) (data map[int]map[string]string, err error) {
+	var doc map[string]string
 	data = make(map[int]map[string]string)
 	for id := 0; id < s.Index[table]; id++ {
 		doc, err = s.Read(table, id)
@@ -179,6 +180,7 @@ func (s *Nmns) All(table string) (data map[int]map[string]string, err error) {
 		}
 		data[id] = doc
 	}
+	return
 }
 
 func empty(m map[string]string) bool {
