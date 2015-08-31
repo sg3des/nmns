@@ -3,6 +3,7 @@ package nmns
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"os"
 	"path"
@@ -29,6 +30,10 @@ func Init(schemefile, dir string) error {
 		return err
 	}
 
+	if err := os.MkdirAll(dir, 0755); err != nil {
+		return err
+	}
+
 	d, _ := json.Marshal(scheme)
 	if err = ioutil.WriteFile(path.Join(dir, "scheme.json"), d, 0755); err != nil {
 		return err
@@ -45,20 +50,17 @@ func Init(schemefile, dir string) error {
 }
 
 func writeIndex(dir string, newIndex map[string]int) error {
+	fmt.Println(dir, newIndex)
 	d, _ := json.Marshal(newIndex)
 
 	b, err := ioutil.ReadFile(path.Join(dir, "index.json"))
-	// if err != nil {
-	// 	return err
-	// }
-
 	if err != nil || len(b) == 0 {
 		err := ioutil.WriteFile(path.Join(dir, "index.json"), d, 0755)
 		return err
 	}
 
 	var curIndex map[string]int
-	err = json.Unmarshal(b, curIndex)
+	err = json.Unmarshal(b, &curIndex)
 	if err != nil {
 		return err
 	}
@@ -127,8 +129,26 @@ func Check(schemefile, dir string) error {
 	return nil
 }
 
+func cp(src, dst string) error {
+	s, err := os.Open(src)
+	if err != nil {
+		return err
+	}
+
+	defer s.Close()
+	d, err := os.Create(dst)
+	if err != nil {
+		return err
+	}
+	if _, err := io.Copy(d, s); err != nil {
+		d.Close()
+		return err
+	}
+	return d.Close()
+}
+
 func createTable(dir, table string, values map[string]int) error {
-	err := os.Mkdir(path.Join(dir, table), 0755)
+	err := os.MkdirAll(path.Join(dir, table), 0755)
 	if err != nil {
 		return err
 	}
@@ -210,8 +230,7 @@ func Connect(dir string) (Nmns, error) {
 	s.Files = make(map[string]map[string]*os.File)
 	for table, values := range s.Scheme {
 		s.Files[table] = make(map[string]*os.File)
-		for field, size := range values {
-			fmt.Println(size)
+		for field, _ := range values {
 			f, err := os.OpenFile(path.Join(dir, table, field), os.O_APPEND|os.O_RDWR|os.O_CREATE, 0600)
 			if err != nil {
 				return s, err

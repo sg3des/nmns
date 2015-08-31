@@ -41,6 +41,11 @@ func main() {
 
 	ids, err := s.Search("Urls", map[string]interface{}{"@url": "google", "@version": ".*"})
 	fmt.Println("search ids:", ids, err)
+
+	fmt.Println("delete id 1", s.Delete("Urls", 1))
+	docd1, err := s.Read("Urls", 1)
+	fmt.Println("read deleted id 1", docd1, err)
+
 }
 
 func bench(s *nmns.Nmns) {

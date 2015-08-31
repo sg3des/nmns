@@ -3,6 +3,7 @@ package nmns
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"regexp"
 	"strings"
 )
@@ -46,9 +47,9 @@ func (s *Nmns) Read(table string, id int) (doc map[string]string, err error) {
 		vallen := s.Scheme[table][field]
 		val := make([]byte, vallen)
 		_, err = file.ReadAt(val, int64(id*vallen))
+
 		if err != nil && err.Error() == "EOF" {
 			err = nil
-			continue
 		}
 		if err != nil {
 			return
@@ -100,6 +101,7 @@ func (s *Nmns) Search(table string, filter map[string]interface{}) (ids []int, e
 
 	return
 }
+
 func compare(a string, expr string, valread []byte) (add bool, err error) {
 	switch a {
 	case "@":
@@ -123,5 +125,49 @@ func match(expr string, b []byte) (m bool, err error) {
 		return
 	}
 	m = reg.Match(b)
+	return
+}
+
+func (s *Nmns) Delete(table string, id int) (err error) {
+	if id > s.Index[table] {
+		err = fmt.Errorf("%s", "id is missing")
+		return
+	}
+
+	for field, size := range s.Scheme[table] {
+		var n int
+
+		r := make([]byte, size)
+		n, err = s.Files[table][field].ReadAt(r, int64(id*size))
+		fmt.Println("read", n, r)
+
+		b := make([]byte, size)
+
+		n, err = s.Files[table][field].WriteAt(b, int64(id*size))
+		fmt.Println("writ", n, b)
+		// s.Files[table][field].Seek(offset, whence)
+	}
+	return
+}
+
+func (s *Nmns) Update(table string, id int, doc map[string]string) (err error) {
+	if id > s.Index[table] {
+		err = fmt.Errorf("%s", "id is missing")
+		return
+	}
+
+	for field, val := range doc {
+		maxlen := s.Scheme[table][field]
+
+		if len(val) > maxlen {
+			val = val[0:maxlen]
+		}
+
+		var b []byte
+		misslen := maxlen - len(val)
+		b = append([]byte(val), make([]byte, misslen)...)
+		_, err = s.Files[table][field].WriteAt(b, int64(id*maxlen))
+	}
+
 	return
 }
