@@ -101,7 +101,7 @@ func TestSearch(t *testing.T) {
 		t.Error(err)
 	}
 	t.Log(ids)
-	// must be supplemented
+	// need to append
 }
 
 func TestDelete(t *testing.T) {
@@ -113,4 +113,20 @@ func TestDelete(t *testing.T) {
 		t.Error(err)
 	}
 	t.Log(doc)
+}
+
+func TestAll(t *testing.T) {
+	data, err := t_s.All("Users")
+	if err != nil {
+		t.Error(err)
+	}
+	t.Log(data)
+}
+
+func TestTruncate(t *testing.T) {
+	err := t_s.Truncate("Users", "age")
+	if err != nil {
+		t.Error(err)
+	}
+	// need to append
 }

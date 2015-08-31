@@ -183,6 +183,32 @@ func (s *Nmns) All(table string) (data map[int]map[string]string, err error) {
 	return
 }
 
+func (s *Nmns) Truncate(table string, fields interface{}) (err error) {
+	switch fields.(type) {
+	case string:
+		if fields.(string) == "" {
+			for _, field := range s.Files[table] {
+				err = field.Truncate(0)
+				if err != nil {
+					return
+				}
+			}
+		} else {
+			if err = s.Files[table][fields.(string)].Truncate(0); err != nil {
+				return
+			}
+		}
+	case []string:
+		for _, field := range fields.([]string) {
+			err = s.Files[table][field].Truncate(0)
+			if err != nil {
+				return
+			}
+		}
+	}
+	return
+}
+
 func empty(m map[string]string) bool {
 	for _, v := range m {
 		if len(v) > 0 {

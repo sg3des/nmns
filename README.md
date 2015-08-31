@@ -45,6 +45,14 @@ This is dir/file database, tables is the directory, field - files in them.
 
 > c.Delete - удаляет данные по заданному id
 
+> c.Truncate - очищает все значения:
+	
+	[]string{"name","age"} - удалит все данные этих полей
+	
+	"name" - удалит все данные данного поля
+
+	"" - полная очистка таблицы
+
 ## Benchmark
 
 *Производительность  зависит от скорости жесткого диска*
