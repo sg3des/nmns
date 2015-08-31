@@ -169,3 +169,23 @@ func (s *Nmns) Update(table string, id int, doc map[string]string) (err error) {
 
 	return
 }
+
+func (s *Nmns) All(table string) (data map[int]map[string]string, err error) {
+	data = make(map[int]map[string]string)
+	for id := 0; id < s.Index[table]; id++ {
+		doc, err = s.Read(table, id)
+		if empty(doc) {
+			continue
+		}
+		data[id] = doc
+	}
+}
+
+func empty(m map[string]string) bool {
+	for _, v := range m {
+		if len(v) > 0 {
+			return false
+		}
+	}
+	return true
+}
