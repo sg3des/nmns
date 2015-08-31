@@ -78,6 +78,13 @@ func Check(schemefile, dir string) error {
 		return err
 	}
 
+	if _, err := os.Stat(path.Join(dir, "scheme.json")); err != nil {
+		if err := Init(schemefile, dir); err != nil {
+			return err
+		}
+		return nil
+	}
+
 	curScheme, err := readScheme(path.Join(dir, "scheme.json"))
 	if err != nil {
 		return err

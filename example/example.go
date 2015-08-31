@@ -10,11 +10,8 @@ func main() {
 
 	fmt.Println("start")
 	dir := "data"
-	if err := nmns.Init("db.json", dir); err != nil {
-		panic(err)
-	}
 
-	if err := nmns.Check("db.json", dir); err != nil {
+	if err := nmns.Check("./db.json", dir); err != nil {
 		panic(err)
 	}
 
