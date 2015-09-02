@@ -25,34 +25,40 @@ Data not stored in memory, receiving data is performed by reading a predetermine
 
 - Check - check the relevance of the database structure. 
 
-	In the process of developing your application, you can modify the configuration json file - add tables, fields, or change the fields size - all the changes are made automatically without data loss.
+ > In the process of developing your application, you can modify the configuration json file - add tables, fields, or change the fields size - all the changes are made automatically without data loss.
 
 - Connect - connected to a database, and returns a connection object (for example "c")
 
-- c.Insert - inserts data in the database and returns the id
+    - c.Insert - inserts data in the database and returns the id
 
-- c.Read - reades data on the given id
+    - c.Read - reades data on the given id
 
-- c.Search - Search data by filter, returns a list of id, examples of filters:
-
-
-    map[string]interface{}{"name":"Valeriy"} - full match by a single field    
-    map[string]interface{}{"name":"Valeriy","age":"99"} - full match on the two fields
-    map[string]interface{}{"name":[]string{"Valeriy","Zarina"}} - at least full match one value
-    map[string]interface{}{"@name":"Val.*"} - prefix @ allows you to search using regular expressions
-    map[string]interface{}{"@name":"Val.*","age":"99"} - regular expression search by the field "name" and full match by field "age"
+    - c.Search - Search data by filter, returns a list of id, examples of filters:
 
 
-- c.Update - updates data on the given id
+        `map[string]interface{}{"name":"Valeriy"}` - full match by a single field
 
-- c.Delete - deletes data on the given id
+        `map[string]interface{}{"name":"Valeriy","age":"99"}` - full match on the two fields
 
-- c.Truncate - it clears all values:
+        `map[string]interface{}{"name":[]string{"Valeriy","Zarina"}}` - at least full match one value
+
+        `map[string]interface{}{"@name":"Val.*"}` - prefix @ allows you to search using regular expressions
+
+        `map[string]interface{}{"@name":"Val.*","age":"99"}` - regular expression search by the field "name" and full match by field "age"
 
 
-    []string{"name","age"} - delete all the data from these fields
-    "name" - deletes all the data of the only field
-    "" - complete cleaning table(all fields)
+    - c.Update - updates data on the given id
+
+    - c.Delete - deletes data on the given id
+
+    - c.Truncate - it clears all values:
+
+
+        `[]string{"name","age"}` - delete all the data from these fields
+
+        `"name"` - deletes all the data of the only field
+
+        `""` - complete cleaning table(all fields)
 
 
 ## Benchmark
