@@ -5,7 +5,7 @@ Tiny simple file database. Designed for small applications with small volume of 
 ## Decription
 This is dir/file database, tables is the directory, field - files in them.
 
-Для создания базы данных потребуется json файл описывающий структуру: 
+To create the database required json file describing the structure:
 
 	{
 		"Table": {
@@ -14,48 +14,52 @@ This is dir/file database, tables is the directory, field - files in them.
 		}
 	}
 
-Данные не хранятся в оперативной памяти, получение данных происходит при считывании необходимого количество байт из файла. Если длина значения 8 байт, то для получения 5-го ид - считываются данные из файла с 40 по 47 байт включительно.
+Data not stored in memory, receiving data is performed by reading a predetermined number of bytes (size of a field) at a specific position (id * field size)
+
+> If the length of the values of 8 bytes, 5 id data - read from 40 to 48 bytes
 
 
 ## Functions
 
-> Init - создаст базу данных, или перезапишет существующую.
+> Init - It creates a database, or overwrite an existing one(*can be omitted*)
 
-> Check - проверяет актуальность структуры БД. В процессе разработки своего приложения, вы можете изменять json файл конфигурации - добавлять таблицы, поля или изменять размер полей, все изменения будут вноситься автоматически, без потери данных. 
+> Check - check the relevance of the database structure. 
 
-> Connect - подключается к базе данных, и возвращает объект подключения (наприер "c")
+	In the process of developing your application, you can modify the configuration json file - add tables, fields, or change the fields size - all the changes are made automatically without data loss.
 
-> c.Insert - вставляет данные в базу данных и возвращает id
+> Connect - connected to a database, and returns a connection object (for example "c")
 
-> c.Read - читает данные по конкретному id
+> c.Insert - inserts data in the database and returns the id
 
-> c.Search - поиск данных по условию, возвращает список найденных id, примеры фильтров:
+> c.Read - reades data on the given id
+
+> c.Search - Search data by filter, returns a list of id, examples of filters:
+
+	map[string]interface{}{"name":"Valeriy"} - full match by a single field
+
+	map[string]interface{}{"name":"Valeriy","age":"99"} - full match on the two fields
+
+	map[string]interface{}{"name":[]string{"Valeriy","Zarina"}} - at least full match one value
+
+	map[string]interface{}{"@name":"Val.*"} - prefix @ allows you to search using regular expressions
+
+	map[string]interface{}{"@name":"Val.*","age":"99"} - regular expression search by the field "name" and full match by field "age"
+
+> c.Update - updates data on the given id
+
+> c.Delete - deletes data on the given id
+
+> c.Truncate - it clears all values:
 	
-	map[string]interface{}{"name":"Valeriy"} - полное совпадение по одному полю
-
-	map[string]interface{}{"name":"Valeriy","age":"99"} - полное совпадение по обоим полям
-
-	map[string]interface{}{"name":["Valeriy","Zarina"]} - полное совпадение хотябы по одному значению
-
-	map[string]interface{}{"@name":"Val.*"} - префикс @ позволяет искать с помощью регулярных выражений 
-
-	map[string]interface{}{"@name":"Val.*","age":"99"} - поиск по регулярному выражению по полям name и полное совпадение по полю age
-
-> c.Update - обвновляет данные по заданному id
-
-> c.Delete - удаляет данные по заданному id
-
-> c.Truncate - очищает все значения:
+	[]string{"name","age"} - delete all the data from these fields
 	
-	[]string{"name","age"} - удалит все данные этих полей
-	
-	"name" - удалит все данные данного поля
+	"name" - deletes all the data of the only field
 
-	"" - полная очистка таблицы
+	"" - complete cleaning table(all fields)
 
 ## Benchmark
 
-*Производительность  зависит от скорости жесткого диска*
+* Performance will vary depending on the speed of your hard drive *
 
 ###Speed
 	1 second:

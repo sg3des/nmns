@@ -11,6 +11,10 @@ func main() {
 	fmt.Println("start")
 	dir := "data"
 
+	if err := nmns.Init("./db.json", dir); err != nil {
+		panic(err)
+	}
+
 	if err := nmns.Check("./db.json", dir); err != nil {
 		panic(err)
 	}
@@ -36,7 +40,7 @@ func main() {
 	fmt.Println("read id2", id2, docr2, err)
 	fmt.Println("")
 
-	ids, err := s.Search("Urls", map[string]interface{}{"@url": "google", "@version": ".*"})
+	ids, err := s.Search("Urls", map[string]interface{}{"url": []string{"google", "yandex"}, "@version": "^1.*"})
 	fmt.Println("search ids", ids, err)
 	fmt.Println("")
 
