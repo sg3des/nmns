@@ -35,6 +35,7 @@ Data not stored in memory, receiving data is performed by reading a predetermine
 
 * c.Search - Search data by filter, returns a list of id, examples of filters:
 
+
 	map[string]interface{}{"name":"Valeriy"} - full match by a single field
 
 	map[string]interface{}{"name":"Valeriy","age":"99"} - full match on the two fields
@@ -45,21 +46,24 @@ Data not stored in memory, receiving data is performed by reading a predetermine
 
 	map[string]interface{}{"@name":"Val.*","age":"99"} - regular expression search by the field "name" and full match by field "age"
 
+
 * c.Update - updates data on the given id
 
 * c.Delete - deletes data on the given id
 
 * c.Truncate - it clears all values:
-	
+
+
 	[]string{"name","age"} - delete all the data from these fields
-	
+
 	"name" - deletes all the data of the only field
 
 	"" - complete cleaning table(all fields)
 
+
 ## Benchmark
 
-** Performance will vary depending on the speed of your hard drive **
+* Performance will vary depending on the speed of your hard drive *
 
 ###Speed
 	1 second:
