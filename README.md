@@ -14,7 +14,7 @@ To create the database required json file describing the structure:
 		}
 	}
 
-Data not stored in memory, receiving data is performed by reading a predetermined number of bytes (size of a field) at a specific position (id * field size)
+Data not stored in memory, receiving data is performed by reading a predetermined number of bytes (field size) at a specific position (id * field size)
 
 > If the length of the values of 8 bytes, 5 id data - read from 40 to 48 bytes
 
@@ -36,11 +36,11 @@ Data not stored in memory, receiving data is performed by reading a predetermine
 - c.Search - Search data by filter, returns a list of id, examples of filters:
 
 
-	map[string]interface{}{"name":"Valeriy"} - full match by a single field
-	map[string]interface{}{"name":"Valeriy","age":"99"} - full match on the two fields
-	map[string]interface{}{"name":[]string{"Valeriy","Zarina"}} - at least full match one value
-	map[string]interface{}{"@name":"Val.*"} - prefix @ allows you to search using regular expressions
-	map[string]interface{}{"@name":"Val.*","age":"99"} - regular expression search by the field "name" and full match by field "age"
+    map[string]interface{}{"name":"Valeriy"} - full match by a single field    
+    map[string]interface{}{"name":"Valeriy","age":"99"} - full match on the two fields
+    map[string]interface{}{"name":[]string{"Valeriy","Zarina"}} - at least full match one value
+    map[string]interface{}{"@name":"Val.*"} - prefix @ allows you to search using regular expressions
+    map[string]interface{}{"@name":"Val.*","age":"99"} - regular expression search by the field "name" and full match by field "age"
 
 
 - c.Update - updates data on the given id
@@ -50,9 +50,9 @@ Data not stored in memory, receiving data is performed by reading a predetermine
 - c.Truncate - it clears all values:
 
 
-	[]string{"name","age"} - delete all the data from these fields
-	"name" - deletes all the data of the only field
-	"" - complete cleaning table(all fields)
+    []string{"name","age"} - delete all the data from these fields
+    "name" - deletes all the data of the only field
+    "" - complete cleaning table(all fields)
 
 
 ## Benchmark
