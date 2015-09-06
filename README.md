@@ -21,20 +21,19 @@ Data not stored in memory, receiving data is performed by reading a predetermine
 
 ## Functions
 
-- Init - It creates a database, or overwrite an existing one(*can be omitted*)
+- `Init(dir,scheme.json)` - It creates a database, or overwrite an existing one(*can be omitted*)
 
-- Check - check the relevance of the database structure. 
+- `Check(dir,scheme.json)` - check the relevance of the database structure. 
 
  > In the process of developing your application, you can modify the configuration json file - add tables, fields, or change the fields size - all the changes are made automatically without data loss.
 
-- Connect - connected to a database, and returns a connection object (for example "c")
+- `Connect(dir)` - connected to a database, and returns a connection fuction (for example db(string)). `db("name").ACTION` - ready to use the specified table
 
-    - c.Insert - inserts data in the database and returns the id
+    - `db("name").Write(doc)` - writes data in the database and returns the id, doc example: `doc := map[string]string{"city":"Moscow","country":"Russia"}`
 
-    - c.Read - reades data on the given id
+    - `db("name").Read(id)` - reades data on the given id, id is `int`, example: `id := 1`
 
-    - c.Search - Search data by filter, returns a list of id, examples of filters:
-
+    - `db("name").Search(filter,[limit])` - Search data by filter, returns a list of id, examples of filters:
 
         `map[string]interface{}{"name":"Valeriy"}` - full match by a single field
 
@@ -46,19 +45,20 @@ Data not stored in memory, receiving data is performed by reading a predetermine
 
         `map[string]interface{}{"@name":"Val.*","age":"99"}` - regular expression search by the field "name" and full match by field "age"
 
-
-    - c.Update - updates data on the given id
-
-    - c.Delete - deletes data on the given id
-
-    - c.Truncate - it clears all values:
+    limit is optional integer parameter
 
 
-        `[]string{"name","age"}` - delete all the data from these fields
+    - `db("name").Update(id,doc)` - updates data on the given id
 
-        `"name"` - deletes all the data of the only field
+    - `db("name").Delete(id)` - deletes data on the given id
 
-        `""` - complete cleaning table(all fields)
+    - `db("name").Truncate([fields])` - it clears all value, ex:
+
+        `db("name").Truncate("city","country")` - delete all the data from these fields
+
+        `db("name").Truncate("city")`  - deletes all the data of the only field
+
+        `db("name").Truncate()` - complete cleaning table(all fields)
 
 
 ## Benchmark

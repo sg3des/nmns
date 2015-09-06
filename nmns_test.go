@@ -15,11 +15,12 @@ var (
 
 	t_scheme map[string]map[string]int
 
-	t_s Nmns
-	id  int
+	t_db  func(string) *TableStruct
+	id    int
+	t_err error
 )
 
-const dbjson = `{"Users":{"name":16,"age":3}}`
+const dbjson = `{"world":{"city":32,"country":32}}`
 
 func init() {
 	if err := os.MkdirAll(path.Join(t_dir, t_dbname), 0755); err != nil {
@@ -62,16 +63,16 @@ func TestCheck(t *testing.T) {
 }
 
 func TestConnect(t *testing.T) {
-	t_s, err = Connect(path.Join(t_dir, t_dbname))
-	if err != nil {
-		t.Error(err)
+	t_db, t_err = Connect(path.Join(t_dir, t_dbname))
+	if t_err != nil {
+		t.Error(t_err)
 	}
 
 }
 
-func TestInsert(t *testing.T) {
-	doc := map[string]string{"name": "Valeriy", "age": "99"}
-	id, err = t_s.Insert("Users", doc)
+func TestWrite(t *testing.T) {
+	doc := map[string]string{"city": "Moscow", "country": "Russia"}
+	id, err := t_db("world").Write(doc)
 	if err != nil {
 		t.Error(err)
 	}
@@ -79,15 +80,15 @@ func TestInsert(t *testing.T) {
 }
 
 func TestUpdate(t *testing.T) {
-	doc := map[string]string{"name": "Valeriy", "age": "01"}
-	err := t_s.Update("Users", id, doc)
+	doc := map[string]string{"city": "London", "country": "United Kingdom"}
+	err := t_db("world").Update(id, doc)
 	if err != nil {
 		t.Error(err)
 	}
 }
 
 func TestRead(t *testing.T) {
-	doc, err := t_s.Read("Users", id)
+	doc, err := t_db("world").Read(id)
 	if err != nil {
 		t.Error(err)
 	}
@@ -95,8 +96,8 @@ func TestRead(t *testing.T) {
 }
 
 func TestSearch(t *testing.T) {
-	filter := map[string]interface{}{"name": "Valeriy"}
-	ids, err := t_s.Search("Users", filter)
+	filter := map[string]interface{}{"city": "Moscow"}
+	ids, err := t_db("world").Search(filter)
 	if err != nil {
 		t.Error(err)
 	}
@@ -105,10 +106,10 @@ func TestSearch(t *testing.T) {
 }
 
 func TestDelete(t *testing.T) {
-	if err := t_s.Delete("Users", id); err != nil {
+	if err := t_db("world").Delete(id); err != nil {
 		t.Error(err)
 	}
-	doc, err := t_s.Read("Users", id)
+	doc, err := t_db("world").Read(id)
 	if err != nil {
 		t.Error(err)
 	}
@@ -116,7 +117,7 @@ func TestDelete(t *testing.T) {
 }
 
 func TestAll(t *testing.T) {
-	data, err := t_s.All("Users")
+	data, err := t_db("world").All()
 	if err != nil {
 		t.Error(err)
 	}
@@ -124,7 +125,7 @@ func TestAll(t *testing.T) {
 }
 
 func TestTruncate(t *testing.T) {
-	err := t_s.Truncate("Users", "age")
+	err := t_db("world").Truncate("country")
 	if err != nil {
 		t.Error(err)
 	}

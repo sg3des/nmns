@@ -2,23 +2,10 @@ package nmns
 
 import (
 	"encoding/json"
-	"io"
 	"io/ioutil"
 	"os"
 	"path"
-	"sort"
 )
-
-var (
-	err   error
-	Index *os.File
-)
-
-type Nmns struct {
-	Scheme map[string]map[string]int
-	Files  map[string]map[string]*os.File
-	Index  map[string]int
-}
 
 func Init(schemefile, dir string) error {
 	scheme, err := readScheme(schemefile)
@@ -43,33 +30,6 @@ func Init(schemefile, dir string) error {
 	}
 
 	return nil
-}
-
-func writeIndex(dir string, newIndex map[string]int) error {
-	d, _ := json.Marshal(newIndex)
-
-	b, err := ioutil.ReadFile(path.Join(dir, "index.json"))
-	if err != nil || len(b) == 0 {
-		err := ioutil.WriteFile(path.Join(dir, "index.json"), d, 0755)
-		return err
-	}
-
-	var curIndex map[string]int
-	err = json.Unmarshal(b, &curIndex)
-	if err != nil {
-		return err
-	}
-
-	for table, size := range newIndex {
-		curIndex[table] = size
-	}
-
-	dataIndex, err := json.Marshal(curIndex)
-	if err != nil {
-		return err
-	}
-
-	return ioutil.WriteFile(path.Join(dir, "index.json"), dataIndex, 0755)
 }
 
 func Check(schemefile, dir string) error {
@@ -131,24 +91,6 @@ func Check(schemefile, dir string) error {
 	return nil
 }
 
-func cp(src, dst string) error {
-	s, err := os.Open(src)
-	if err != nil {
-		return err
-	}
-
-	defer s.Close()
-	d, err := os.Create(dst)
-	if err != nil {
-		return err
-	}
-	if _, err := io.Copy(d, s); err != nil {
-		d.Close()
-		return err
-	}
-	return d.Close()
-}
-
 func createTable(dir, table string, values map[string]int) error {
 	err := os.MkdirAll(path.Join(dir, table), 0755)
 	if err != nil {
@@ -162,7 +104,7 @@ func createTable(dir, table string, values map[string]int) error {
 		}
 	}
 
-	return writeIndex(dir, map[string]int{table: 0})
+	return Index(dir, table).Write(0)
 }
 
 func createCell(dir, table, name string) error {
@@ -227,85 +169,34 @@ func readScheme(file string) (scheme map[string]map[string]int, err error) {
 	return
 }
 
-func readIndex(file string) (index map[string]int, err error) {
-	Index, err = os.OpenFile(file, os.O_RDWR, 0755)
-	if err != nil {
-		return
-	}
-
-	readfile, err := ioutil.ReadAll(Index)
-	if err != nil {
-		return
-	}
-
-	err = json.Unmarshal(readfile, &index)
-	return
-}
-
-func sortmap(m map[string]interface{}) (keys []string) {
-	for k := range m {
-		keys = append(keys, k)
-	}
-	sort.Strings(keys)
-	return
-}
-
-func keys(m map[string]map[string]int) []string {
-	var keys []string
-	for key, _ := range m {
-		keys = append(keys, key)
-	}
-	return keys
-}
-
-func difference(slice1, slice2 []string) []string {
-	var diff []string
-
-	for i := 0; i < 2; i++ {
-		for _, s1 := range slice1 {
-			found := false
-			for _, s2 := range slice2 {
-				if s1 == s2 {
-					found = true
-					break
-				}
-			}
-			// String not found. We add it to return slice
-			if !found {
-				diff = append(diff, s1)
-			}
-		}
-		// Swap the slices, only if it was the first loop
-		if i == 0 {
-			slice1, slice2 = slice2, slice1
-		}
-	}
-
-	return diff
-}
-
-func Connect(dir string) (Nmns, error) {
+func Connect(dir string) (func(string) *TableStruct, error) {
 	var s Nmns
+	var err error
 	s.Scheme, err = readScheme(path.Join(dir, "scheme.json"))
 	if err != nil {
-		return s, err
+		return s.Table, err
 	}
 
-	s.Index, err = readIndex(path.Join(dir, "index.json"))
-	if err != nil {
-		return s, err
-	}
-
-	s.Files = make(map[string]map[string]*os.File)
+	s.Tables = make(map[string]*TableStruct)
 	for table, values := range s.Scheme {
-		s.Files[table] = make(map[string]*os.File)
-		for field, _ := range values {
-			f, err := os.OpenFile(path.Join(dir, table, field), os.O_RDWR|os.O_APPEND, 0755)
-			if err != nil {
-				return s, err
-			}
-			s.Files[table][field] = f
+
+		t := &TableStruct{Name: table}
+		t.Fields = make(map[string]*FieldStruct)
+		t.IndexFile = Index(dir, table)
+		id, err := t.IndexFile.Read()
+		if err != nil {
+			return s.Table, err
 		}
+		t.IndexNum = id
+
+		for field, size := range values {
+			f, err := os.OpenFile(path.Join(dir, table, field), os.O_RDWR, 0755)
+			if err != nil {
+				return s.Table, err
+			}
+			t.Fields[field] = &FieldStruct{Name: field, Size: size, File: f}
+		}
+		s.Tables = map[string]*TableStruct{table: t}
 	}
-	return s, nil
+	return s.Table, nil
 }

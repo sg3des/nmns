@@ -1,8 +1,6 @@
 {
-	"Urls": {
-		"url": 16,
-		"cms": 16,
-		"version": 16,
-		"test": 4
+	"world": {
+		"city": 32,
+		"country": 32
 	}
 }

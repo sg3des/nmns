@@ -2,16 +2,41 @@ package nmns
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
+	"os"
 	"regexp"
 	"strings"
 )
 
-func (s *Nmns) Insert(table string, doc map[string]string) (id int, err error) {
-	id = s.Index[table]
+type Nmns struct {
+	Scheme map[string]map[string]int
+	Tables map[string]*TableStruct
+}
+
+type TableStruct struct {
+	Name      string
+	Fields    map[string]*FieldStruct
+	IndexNum  int
+	IndexFile *IndexStruct
+}
+
+type FieldStruct struct {
+	Name string
+	File *os.File
+	Size int
+}
+
+func (s *Nmns) Table(table string) *TableStruct {
+	t := s.Tables[table]
+	// t :=
+	// t.Index = s.Index[table]
+	return t
+}
+
+func (t *TableStruct) Write(doc map[string]string) (int, error) {
+	id := t.IndexNum
 	for field, val := range doc {
-		maxlen := s.Scheme[table][field]
+		maxlen := t.Fields[field].Size
 
 		if len(val) > maxlen {
 			val = val[0:maxlen]
@@ -22,35 +47,21 @@ func (s *Nmns) Insert(table string, doc map[string]string) (id int, err error) {
 		var off = int64(id * maxlen)
 		misslen := maxlen - len(val)
 		b = append([]byte(val), make([]byte, misslen)...)
-		_, err = s.Files[table][field].WriteAt(b, off)
+		_, err := t.Fields[field].File.WriteAt(b, off)
 		if err != nil {
-			return
+			return 0, err
 		}
 	}
-	s.Incrementindex(table)
-	return
+	t.IndexNum++
+	err := t.IndexFile.Write(t.IndexNum)
+	return id, err
 }
 
-func (s *Nmns) Incrementindex(table string) {
-	s.Index[table]++
-	d, err := json.Marshal(s.Index)
-	if err != nil {
-		panic(err)
-	}
-
-	Index.Truncate(0)
-	_, err = Index.WriteAt(d, 0)
-	if err != nil {
-		panic(err)
-	}
-}
-
-func (s *Nmns) Read(table string, id int) (doc map[string]string, err error) {
+func (t *TableStruct) Read(id int) (doc map[string]string, err error) {
 	doc = make(map[string]string)
-	for field, file := range s.Files[table] {
-		vallen := s.Scheme[table][field]
-		val := make([]byte, vallen)
-		_, err = file.ReadAt(val, int64(id*vallen))
+	for name, field := range t.Fields {
+		val := make([]byte, field.Size)
+		_, err = field.File.ReadAt(val, int64(id*field.Size))
 
 		if err != nil && err.Error() == "EOF" {
 			err = nil
@@ -58,21 +69,28 @@ func (s *Nmns) Read(table string, id int) (doc map[string]string, err error) {
 		if err != nil {
 			return
 		}
-		doc[field] = strings.Trim(string(val), "\x00")
+		doc[name] = strings.Trim(string(val), "\x00")
 	}
 	return
 }
 
-func (s *Nmns) Search(table string, filter map[string]interface{}) (ids []int, err error) {
+func (t *TableStruct) Search(filter map[string]interface{}, limit ...int) (ids []int, err error) {
 
-	for id := 0; id < s.Index[table]; id++ {
+	l := t.IndexNum
+	if len(limit) != 0 && limit[0] <= t.IndexNum {
+		l = limit[0]
+	}
+
+	for id := 0; id < l; id++ {
 		add := false
 		for sfield, val := range filter {
 			field := strings.Trim(sfield, "@")
 
-			vallen := s.Scheme[table][field]
+			vallen := t.Fields[field].Size
 			valread := make([]byte, vallen)
-			_, end := s.Files[table][field].ReadAt(valread, int64(id*vallen))
+
+			_, end := t.Fields[field].File.ReadAt(valread, int64(id*vallen))
+
 			if end != nil && end.Error() != "EOF" {
 				return
 			}
@@ -132,15 +150,15 @@ func match(expr string, b []byte) (m bool, err error) {
 	return
 }
 
-func (s *Nmns) Delete(table string, id int) (err error) {
-	if id > s.Index[table] {
+func (t *TableStruct) Delete(id int) (err error) {
+	if id > t.IndexNum {
 		err = fmt.Errorf("%s", "id is missing")
 		return
 	}
 
-	for field, size := range s.Scheme[table] {
-		b := make([]byte, size)
-		_, err = s.Files[table][field].WriteAt(b, int64(id*size))
+	for _, field := range t.Fields {
+		b := make([]byte, field.Size)
+		_, err = field.File.WriteAt(b, int64(id*field.Size))
 		if err != nil {
 			return err
 		}
@@ -148,33 +166,38 @@ func (s *Nmns) Delete(table string, id int) (err error) {
 	return
 }
 
-func (s *Nmns) Update(table string, id int, doc map[string]string) (err error) {
-	if id > s.Index[table] {
+func (t *TableStruct) Update(id int, doc map[string]string) (err error) {
+	if id > t.IndexNum {
 		err = fmt.Errorf("%s", "id is missing")
 		return
 	}
 
-	for field, val := range doc {
-		maxlen := s.Scheme[table][field]
+	for name, val := range doc {
+		field := t.Fields[name]
 
-		if len(val) > maxlen {
-			val = val[0:maxlen]
+		if len(val) > field.Size {
+			val = val[0:field.Size]
 		}
 
 		var b []byte
-		misslen := maxlen - len(val)
+		misslen := field.Size - len(val)
 		b = append([]byte(val), make([]byte, misslen)...)
-		_, err = s.Files[table][field].WriteAt(b, int64(id*maxlen))
+		_, err = field.File.WriteAt(b, int64(id*field.Size))
 	}
 
 	return
 }
 
-func (s *Nmns) All(table string) (data map[int]map[string]string, err error) {
+func (t *TableStruct) All(limit ...int) (data map[int]map[string]string, err error) {
 	var doc map[string]string
 	data = make(map[int]map[string]string)
-	for id := 0; id < s.Index[table]; id++ {
-		doc, err = s.Read(table, id)
+	l := t.IndexNum
+	if len(limit) != 0 && limit[0] <= t.IndexNum {
+		l = limit[0]
+	}
+
+	for id := 0; id < l; id++ {
+		doc, err = t.Read(id)
 		if empty(doc) {
 			continue
 		}
@@ -183,30 +206,29 @@ func (s *Nmns) All(table string) (data map[int]map[string]string, err error) {
 	return
 }
 
-func (s *Nmns) Truncate(table string, fields interface{}) (err error) {
-	switch fields.(type) {
-	case string:
-		if fields.(string) == "" {
-			for _, field := range s.Files[table] {
-				err = field.Truncate(0)
-				if err != nil {
-					return
-				}
-			}
-		} else {
-			if err = s.Files[table][fields.(string)].Truncate(0); err != nil {
-				return
+func (t *TableStruct) Truncate(fields ...string) error {
+	switch len(fields) {
+	case 0:
+		for _, field := range t.Fields {
+			err := field.File.Truncate(0)
+			if err != nil {
+				return err
 			}
 		}
-	case []string:
-		for _, field := range fields.([]string) {
-			err = s.Files[table][field].Truncate(0)
+	case 1:
+		if err := t.Fields[fields[0]].File.Truncate(0); err != nil {
+			return err
+		}
+	default:
+		for _, field := range fields {
+			err := t.Fields[field].File.Truncate(0)
 			if err != nil {
-				return
+				return err
 			}
 		}
 	}
-	return
+
+	return nil
 }
 
 func empty(m map[string]string) bool {
