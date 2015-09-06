@@ -1,3 +1,16 @@
+//Package nmns an lighweight file relational database.
+//example:
+//
+//db, err := nmns.Connect(dir)
+//
+//doc := map[string]string{"city":"Moscow","country":"Russia"}
+//id, err := db("world").Write(doc)
+//
+//doc, err := db("world").Read(id) - where id is interge
+//
+//filter := map[string]interface{}{"country":"Russia"}
+//ids, err := db("world").Search(filter)
+//
 package nmns
 
 import (
@@ -7,6 +20,7 @@ import (
 	"path"
 )
 
+//Creates a database dir with file,scheme and other, or overwrite an existing - can be omitted
 func Init(schemefile, dir string) error {
 	scheme, err := readScheme(schemefile)
 	if err != nil {
@@ -32,6 +46,7 @@ func Init(schemefile, dir string) error {
 	return nil
 }
 
+//Check the relevance of the database structure. In the process of developing your application, you can modify the configuration json file - add tables, fields, or change the fields size - all the changes are made automatically without data loss.
 func Check(schemefile, dir string) error {
 	newScheme, err := readScheme(schemefile)
 	if err != nil {
@@ -169,6 +184,7 @@ func readScheme(file string) (scheme map[string]map[string]int, err error) {
 	return
 }
 
+//connected to a database, and returns a connection fuction
 func Connect(dir string) (func(string) *TableStruct, error) {
 	var s Nmns
 	var err error

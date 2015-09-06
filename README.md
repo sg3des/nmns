@@ -52,7 +52,9 @@ Data not stored in memory, receiving data is performed by reading a predetermine
 
     - `db("name").Delete(id)` - deletes data on the given id
 
-    - `db("name").Truncate([fields])` - it clears all value, ex:
+    - `db("name").All([limit])` - get all data
+
+    - `db("name").Truncate([fields])` - clear values, ex:
 
         `db("name").Truncate("city","country")` - delete all the data from these fields
 
