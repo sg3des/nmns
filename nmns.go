@@ -1,16 +1,11 @@
-//Package nmns an lighweight file relational database.
-//example:
-//
-//db, err := nmns.Connect(dir)
-//
-//doc := map[string]string{"city":"Moscow","country":"Russia"}
-//id, err := db("world").Write(doc)
-//
-//doc, err := db("world").Read(id) - where id is interge
-//
-//filter := map[string]interface{}{"country":"Russia"}
-//ids, err := db("world").Search(filter)
-//
+// Package nmns an lighweight file relational database.
+// example:
+//   db, err := nmns.Connect(dir)
+//   doc := map[string]string{"city":"Moscow","country":"Russia"}
+//   id, err := db("world").Write(doc)
+//   doc, err := db("world").Read(id) - where id is interge
+//   filter := map[string]interface{}{"country":"Russia"}
+//   ids, err := db("world").Search(filter)
 package nmns
 
 import (
