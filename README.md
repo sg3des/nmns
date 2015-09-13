@@ -5,7 +5,7 @@ Tiny simple file database. Designed for small applications with small volume of 
 ## Decription
 This is dir/file database, tables is the directory, field - files in them.
 
-To create the database required json file describing the structure:
+To create the database is required json file describing the structure:
 
 	{
 		"Table": {
@@ -14,9 +14,9 @@ To create the database required json file describing the structure:
 		}
 	}
 
-Data not stored in memory, receiving data is performed by reading a predetermined number of bytes (field size) at a specific position (id * field size)
+Data does not store in memory, receiving data is performed by reading a predetermined number of bytes (field size) at the specific position (id * field size)
 
-> If the length of the values of 8 bytes, 5 id data - read from 40 to 48 bytes
+> If the length of the values is 8 bytes, 5 id data is read from 40 to 48 bytes
 
 
 ## Functions
@@ -25,52 +25,52 @@ Data not stored in memory, receiving data is performed by reading a predetermine
 
 - `Check(dir,scheme.json)` - check the relevance of the database structure. 
 
- > In the process of developing your application, you can modify the configuration json file - add tables, fields, or change the fields size - all the changes are made automatically without data loss.
+ > In the process of developing your application, you can modify the json scheme file - add tables, fields, or change the fields size - all the changes are made automatically without data loss.
 
-- `Connect(dir)` - connected to a database, and returns a connection fuction (for example db(string)). `db("name").ACTION` - ready to use the specified table
+- `Connect(dir)` - makes a connection to database, and returns a connection function (for example db(string)). `db("name").ACTION` - makes ready to use the specified table
 
     - `db("name").Write(doc)` - writes data in the database and returns the id, doc example: `doc := map[string]string{"city":"Moscow","country":"Russia"}`
 
     - `db("name").Read(id)` - reades data on the given id, id is `int`, example: `id := 1`
 
-    - `db("name").Search(filter,[limit])` - Search data by filter, returns a list of id, examples of filters:
+    - `db("name").Search(filter,[limit])` - Searches data by filter, returns a list of id, examples of filters:
 
         `map[string]interface{}{"name":"Valeriy"}` - full match by a single field
 
         `map[string]interface{}{"name":"Valeriy","age":"99"}` - full match on the two fields
 
-        `map[string]interface{}{"name":[]string{"Valeriy","Zarina"}}` - at least full match one value
+        `map[string]interface{}{"name":[]string{"Valeriy","Zarina"}}` - at least full match on one value
 
         `map[string]interface{}{"@name":"Val.*"}` - prefix @ allows you to search using regular expressions
 
-        `map[string]interface{}{"@name":"Val.*","age":"99"}` - regular expression search by the field "name" and full match by field "age"
+        `map[string]interface{}{"@name":"Val.*","age":"99"}` - for data searching use regular expression  by the field "name" and full match by the field "age"
 
-    limit is optional integer parameter
+    `[limit]` - is optional integer parameter
 
 
     - `db("name").Update(id,doc)` - updates data on the given id
 
     - `db("name").Delete(id)` - deletes data on the given id
 
-    - `db("name").All([limit])` - get all data
+    - `db("name").All([limit])` - gets all the data
 
     - `db("name").Truncate([fields])` - clear values, ex:
 
-        `db("name").Truncate("city","country")` - delete all the data from these fields
+        `db("name").Truncate("city","country")` - deletes all the data from these fields
 
         `db("name").Truncate("city")`  - deletes all the data of the only field
 
-        `db("name").Truncate()` - complete cleaning table(all fields)
+        `db("name").Truncate()` - full cleaning of the table(all fields)
 
 
 ## Benchmark
 
-***Performance will vary depending on the speed of your hard drive***
+***Performance will be vary depending on the speed of your hard drive***
 
 ###Speed
 	1 second:
-		Inserting new docs: 33400
-		Read random docs: 123200
+		Write docs: 33400
+		Read docs: 123200
 
 ###Memory
 	Read and write 100,000 times:
