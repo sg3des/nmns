@@ -3,6 +3,7 @@ package nmns
 import (
 	"encoding/json"
 	"io/ioutil"
+	"math/rand"
 	"os"
 	"path"
 	"testing"
@@ -18,6 +19,7 @@ var (
 	t_db  func(string) *TableStruct
 	id    int
 	t_err error
+	t_doc = map[string]string{"city": "Moscow", "country": "Russia"}
 )
 
 const dbjson = `{"world":{"city":32,"country":32}}`
@@ -71,8 +73,7 @@ func TestConnect(t *testing.T) {
 }
 
 func TestWrite(t *testing.T) {
-	doc := map[string]string{"city": "Moscow", "country": "Russia"}
-	id, err := t_db("world").Write(doc)
+	id, err := t_db("world").Write(t_doc)
 	if err != nil {
 		t.Error(err)
 	}
@@ -130,4 +131,16 @@ func TestTruncate(t *testing.T) {
 		t.Error(err)
 	}
 	// need to append
+}
+
+func BenchmarkWrite(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		t_db("world").Write(t_doc)
+	}
+}
+
+func BenchmarkRead(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		t_db("world").Read(rand.Intn(t_db("world").IndexNum))
+	}
 }

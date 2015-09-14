@@ -68,11 +68,5 @@ Data does not store in memory, receiving data is performed by reading a predeter
 ***Performance will be vary depending on the speed of your hard drive***
 
 ###Speed
-	1 second:
-		Write docs: 33400
-		Read docs: 123200
-
-###Memory
-	Read and write 100,000 times:
-		Working memory: 3mb
-		Total allocated memory: 70mb
+		Write: 300000 docs per 2.788s
+		Read docs: 500000 docs per 3.344s
