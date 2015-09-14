@@ -2,5 +2,9 @@
 	"world": {
 		"city": 32,
 		"country": 32
+	},
+	"peoples": {
+		"name": 32,
+		"age": 3
 	}
 }

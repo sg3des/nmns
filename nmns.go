@@ -190,7 +190,6 @@ func Connect(dir string) (func(string) *TableStruct, error) {
 
 	s.Tables = make(map[string]*TableStruct)
 	for table, values := range s.Scheme {
-
 		t := &TableStruct{Name: table}
 		t.Fields = make(map[string]*FieldStruct)
 		t.IndexFile = Index(dir, table)
@@ -207,7 +206,7 @@ func Connect(dir string) (func(string) *TableStruct, error) {
 			}
 			t.Fields[field] = &FieldStruct{Name: field, Size: size, File: f}
 		}
-		s.Tables = map[string]*TableStruct{table: t}
+		s.Tables[table] = t
 	}
 	return s.Table, nil
 }

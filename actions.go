@@ -31,7 +31,10 @@ type FieldStruct struct {
 
 //the function of preparation of the table to work with it
 func (s *Nmns) Table(table string) *TableStruct {
-	return s.Tables[table]
+	if t, ok := s.Tables[table]; ok {
+		return t
+	}
+	return nil
 }
 
 //writes data in the database and returns the id
@@ -79,6 +82,10 @@ func (t *TableStruct) Read(id int) (doc map[string]string, err error) {
 
 //Search data by filter, returns a list of id
 func (t *TableStruct) Search(filter map[string]interface{}, limit ...int) (ids []int, err error) {
+
+	if t.IndexNum == 0 {
+		return
+	}
 
 	l := t.IndexNum
 	if len(limit) != 0 && limit[0] <= t.IndexNum {
