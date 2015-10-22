@@ -2,6 +2,7 @@ package nmns
 
 import (
 	"bytes"
+	. "errors"
 	"fmt"
 	"os"
 	"regexp"
@@ -39,8 +40,17 @@ func (s *Nmns) Table(table string) *TableStruct {
 
 //writes data in the database and returns the id
 func (t *TableStruct) Write(doc map[string]string) (int, error) {
+	if t == nil {
+		err := fmt.Errorf("%s", "Requested table does not exist")
+		return 0, err
+	}
+
 	id := t.IndexNum
 	for field, val := range doc {
+		if _, ok := t.Fields[field]; !ok {
+			//if field not exist - just skip it
+			continue
+		}
 		maxlen := t.Fields[field].Size
 
 		if len(val) > maxlen {
@@ -62,8 +72,13 @@ func (t *TableStruct) Write(doc map[string]string) (int, error) {
 	return id, err
 }
 
-//reades data on the given id
+//Reades data on the given id
 func (t *TableStruct) Read(id int) (doc map[string]string, err error) {
+	if t == nil {
+		err = fmt.Errorf("%s", "Requested table does not exist")
+		return
+	}
+
 	doc = make(map[string]string)
 	for name, field := range t.Fields {
 		val := make([]byte, field.Size)
@@ -77,11 +92,18 @@ func (t *TableStruct) Read(id int) (doc map[string]string, err error) {
 		}
 		doc[name] = strings.Trim(string(val), "\x00")
 	}
+	// if empty(doc) {
+	// 	err = fmt.Errorf("%s %d %s", "item by id", id, "is null")
+	// }
 	return
 }
 
 //Search data by filter, returns a list of id
-func (t *TableStruct) Search(filter map[string]interface{}, limit ...int) (ids []int, err error) {
+func (t *TableStruct) Search(filter map[string]interface{}, limit ...int) (data map[int]map[string]string, err error) {
+	if t == nil {
+		err = fmt.Errorf("%s", "Requested table does not exist")
+		return
+	}
 
 	if t.IndexNum == 0 {
 		return
@@ -92,6 +114,7 @@ func (t *TableStruct) Search(filter map[string]interface{}, limit ...int) (ids [
 		l = limit[0]
 	}
 
+	var ids []int
 	for id := 0; id < l; id++ {
 		add := false
 		for sfield, val := range filter {
@@ -119,7 +142,10 @@ func (t *TableStruct) Search(filter map[string]interface{}, limit ...int) (ids [
 						break
 					}
 				}
+			}
 
+			if err != nil {
+				return
 			}
 
 			if !add {
@@ -129,6 +155,18 @@ func (t *TableStruct) Search(filter map[string]interface{}, limit ...int) (ids [
 		}
 		if add {
 			ids = append(ids, id)
+		}
+	}
+
+	data = make(map[int]map[string]string)
+	var doc map[string]string
+	for _, id := range ids {
+		doc, err = t.Read(id)
+		if err != nil {
+			return
+		}
+		if !empty(doc) {
+			data[id] = doc
 		}
 	}
 
@@ -180,12 +218,21 @@ func (t *TableStruct) Delete(id int) (err error) {
 
 //updates data on the given id
 func (t *TableStruct) Update(id int, doc map[string]string) (err error) {
+	if t == nil {
+		err = fmt.Errorf("%s", "Requested table does not exist")
+		return
+	}
+
 	if id > t.IndexNum {
 		err = fmt.Errorf("%s", "id is missing")
 		return
 	}
 
 	for name, val := range doc {
+		if _, ok := t.Fields[name]; !ok {
+			//if field not exist - just skip it
+			continue
+		}
 		field := t.Fields[name]
 
 		if len(val) > field.Size {
@@ -203,6 +250,11 @@ func (t *TableStruct) Update(id int, doc map[string]string) (err error) {
 
 //Return all data
 func (t *TableStruct) All(limit ...int) (data map[int]map[string]string, err error) {
+	if t == nil {
+		err = fmt.Errorf("%s", "Requested table does not exist")
+		return
+	}
+
 	var doc map[string]string
 	data = make(map[int]map[string]string)
 	l := t.IndexNum
@@ -222,6 +274,11 @@ func (t *TableStruct) All(limit ...int) (data map[int]map[string]string, err err
 
 //clear values
 func (t *TableStruct) Truncate(fields ...string) error {
+	if t == nil {
+		err := fmt.Errorf("%s", "Requested table does not exist")
+		return err
+	}
+
 	switch len(fields) {
 	case 0:
 		for _, field := range t.Fields {
