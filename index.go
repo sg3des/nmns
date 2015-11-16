@@ -7,6 +7,7 @@ import (
 	"strconv"
 )
 
+//Index return index for table
 func Index(dir, table string) *IndexStruct {
 	var indexFile *os.File
 	var err error
@@ -19,15 +20,18 @@ func Index(dir, table string) *IndexStruct {
 	return &IndexStruct{File: indexFile}
 }
 
+//IndexStruct is wrapper for os.File
 type IndexStruct struct {
 	File *os.File
 }
 
+//Write data on disk
 func (i *IndexStruct) Write(id int) error {
 	_, err := i.File.WriteAt([]byte(strconv.Itoa(id)), 0)
 	return err
 }
 
+//Read data from disk
 func (i *IndexStruct) Read() (int, error) {
 	data, err := ioutil.ReadAll(i.File)
 	if err != nil {

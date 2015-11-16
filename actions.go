@@ -2,20 +2,19 @@ package nmns
 
 import (
 	"bytes"
-	. "errors"
 	"fmt"
 	"os"
 	"regexp"
 	"strings"
 )
 
-//helper object - library
+//Nmns is helper object - library
 type Nmns struct {
 	Scheme map[string]map[string]int
 	Tables map[string]*TableStruct
 }
 
-//table object containing the data on it, the name of the table, the last index entry fields and facilities
+//TableStruct is table object containing the data on it, the name of the table, the last index entry fields and facilities
 type TableStruct struct {
 	Name      string
 	Fields    map[string]*FieldStruct
@@ -23,14 +22,14 @@ type TableStruct struct {
 	IndexFile *IndexStruct
 }
 
-//field object
+//FieldStruct is field object
 type FieldStruct struct {
 	Name string
 	File *os.File
 	Size int
 }
 
-//the function of preparation of the table to work with it
+//Table is the function of preparation of the table to work with it
 func (s *Nmns) Table(table string) *TableStruct {
 	if t, ok := s.Tables[table]; ok {
 		return t
@@ -38,7 +37,7 @@ func (s *Nmns) Table(table string) *TableStruct {
 	return nil
 }
 
-//writes data in the database and returns the id
+//Write is writes data in the database and returns the id
 func (t *TableStruct) Write(doc map[string]string) (int, error) {
 	if t == nil {
 		err := fmt.Errorf("%s", "Requested table does not exist")
@@ -72,7 +71,7 @@ func (t *TableStruct) Write(doc map[string]string) (int, error) {
 	return id, err
 }
 
-//Reades data on the given id
+//Read - Reades data on the given id
 func (t *TableStruct) Read(id int) (doc map[string]string, err error) {
 	if t == nil {
 		err = fmt.Errorf("%s", "Requested table does not exist")
@@ -199,7 +198,7 @@ func match(expr string, b []byte) (m bool, err error) {
 	return
 }
 
-//deletes data on the given id
+//Delete - deletes data on the given id
 func (t *TableStruct) Delete(id int) (err error) {
 	if id > t.IndexNum {
 		err = fmt.Errorf("%s", "id is missing")
@@ -216,7 +215,7 @@ func (t *TableStruct) Delete(id int) (err error) {
 	return
 }
 
-//updates data on the given id
+//Update - updates data on the given id
 func (t *TableStruct) Update(id int, doc map[string]string) (err error) {
 	if t == nil {
 		err = fmt.Errorf("%s", "Requested table does not exist")
@@ -248,7 +247,7 @@ func (t *TableStruct) Update(id int, doc map[string]string) (err error) {
 	return
 }
 
-//Return all data
+//All - Return all data
 func (t *TableStruct) All(limit ...int) (data map[int]map[string]string, err error) {
 	if t == nil {
 		err = fmt.Errorf("%s", "Requested table does not exist")
@@ -272,7 +271,7 @@ func (t *TableStruct) All(limit ...int) (data map[int]map[string]string, err err
 	return
 }
 
-//clear values
+//Truncate - clear values
 func (t *TableStruct) Truncate(fields ...string) error {
 	if t == nil {
 		err := fmt.Errorf("%s", "Requested table does not exist")

@@ -15,7 +15,7 @@ import (
 	"path"
 )
 
-//Creates a database dir with file,scheme and other, or overwrite an existing - can be omitted
+//Init creates a database dir with file,scheme and other, or overwrite an existing - can be omitted
 func Init(schemefile, dir string) error {
 	scheme, err := readScheme(schemefile)
 	if err != nil {
@@ -48,7 +48,7 @@ func Check(schemefile, dir string) error {
 		return err
 	}
 
-	if _, err := os.Stat(path.Join(dir, "scheme.json")); err != nil {
+	if _, err = os.Stat(path.Join(dir, "scheme.json")); err != nil {
 		if err := Init(schemefile, dir); err != nil {
 			return err
 		}
@@ -107,7 +107,7 @@ func createTable(dir, table string, values map[string]int) error {
 		return err
 	}
 
-	for field, _ := range values {
+	for field := range values {
 		err := createCell(dir, table, field)
 		if err != nil {
 			return err
@@ -179,7 +179,7 @@ func readScheme(file string) (scheme map[string]map[string]int, err error) {
 	return
 }
 
-//connected to a database, and returns a connection fuction
+//Connect - connected to a database, and returns a connection fuction
 func Connect(dir string) (func(string) *TableStruct, error) {
 	var s Nmns
 	var err error
